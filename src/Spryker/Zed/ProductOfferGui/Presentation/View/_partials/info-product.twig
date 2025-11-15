@@ -1,15 +1,15 @@
 {% embed '@Gui/Partials/widget.twig' with { widget_title: 'Product' } %}
     {% block widget_content %}
         <div class="row form-group">
-            <div class="col-xs-2"><b>{{ 'SKU' | trans }}</b></div>
-            <div class="col-xs-10"><a target="_blank" href="{{ url('/product-management/view/variant', {'id-product-abstract': productConcrete.fkProductAbstract, 'id-product': productConcrete.idProductConcrete}) }}" data-qa="product-offer-product-sku">{{ productConcrete.sku }}</a></div>
+            <div class="col-2"><b>{{ 'SKU' | trans }}</b></div>
+            <div class="col-10"><a target="_blank" href="{{ url('/product-management/view/variant', {'id-product-abstract': productConcrete.fkProductAbstract, 'id-product': productConcrete.idProductConcrete}) }}" data-qa="product-offer-product-sku">{{ productConcrete.sku }}</a></div>
         </div>
 
         {% set productType = 'Product' | trans %}
 
         <div class="row form-group">
-            <div class="col-xs-2"><b>{{ 'Type' | trans }}</b></div>
-            <div class="col-xs-10">{{ productType }}</div>
+            <div class="col-2"><b>{{ 'Type' | trans }}</b></div>
+            <div class="col-10">{{ productType }}</div>
         </div>
 
         <divs class="m-t">
@@ -20,13 +20,13 @@
                         {% embed '@Gui/Partials/localized-ibox.twig' with {'collapsed': (not loop.parent.loop.first), 'localeName': localeTransfer.localeName} %}
                             {% block content %}
                                 <div class="row">
-                                    <div class="col-xs-2"><b>{{ 'Name' | trans }}</b></div>
-                                    <div class="col-xs-10">{{ localizedData.name }}</div>
+                                    <div class="col-2"><b>{{ 'Name' | trans }}</b></div>
+                                    <div class="col-10">{{ localizedData.name }}</div>
                                 </div>
                                 <div class="hr-line-dashed"></div>
                                 <div class="row">
-                                    <div class="col-xs-2"><b>{{ 'Description' | trans }}</b></div>
-                                    <div class="col-xs-10">
+                                    <div class="col-2"><b>{{ 'Description' | trans }}</b></div>
+                                    <div class="col-10">
                                         {{ localizedData.description }}
                                     </div>
                                 </div>

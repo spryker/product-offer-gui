@@ -1,8 +1,8 @@
 {% embed '@Gui/Partials/widget.twig' with { widget_title: 'Offer' | trans } %}
     {% block widget_content %}
         <div class="row form-group">
-            <div class="col-xs-2"><b>{{ 'Reference' | trans }}</b></div>
-            <div class="col-xs-10">{{ productOffer.productOfferReference }}</div>
+            <div class="col-2"><b>{{ 'Reference' | trans }}</b></div>
+            <div class="col-10">{{ productOffer.productOfferReference }}</div>
         </div>
 
         {% set statusLabelClass = 'label-info' %}
@@ -19,8 +19,8 @@
         {% endif %}
 
         <div class="row form-group">
-            <div class="col-xs-2"><b>{{ 'Approval Status' | trans }}</b></div>
-            <div class="col-xs-10">
+            <div class="col-2"><b>{{ 'Approval Status' | trans }}</b></div>
+            <div class="col-10">
                 <span class="label {{ statusLabelClass }}" data-qa="product-offer-approval-status">{{ statusTitle }}</span>
             </div>
         </div>
@@ -34,17 +34,17 @@
         {% endif %}
 
         <div class="row form-group">
-            <div class="col-xs-2"><b>{{ 'Status' | trans }}</b></div>
-            <div class="col-xs-10">
+            <div class="col-2"><b>{{ 'Status' | trans }}</b></div>
+            <div class="col-10">
                 <span class="label {{ isActiveLabelClass }}" data-qa="product-offer-status">{{ isActiveTitle }}</span>
             </div>
         </div>
-        <div class="hr-line-dashed"></div> 
+        <div class="hr-line-dashed"></div>
 
         {% if relatedStores %}
             <div class="row form-group">
-                <div class="col-xs-2"><b>{{ 'Stores' | trans }}</b></div>
-                <div class="col-xs-10">
+                <div class="col-2"><b>{{ 'Stores' | trans }}</b></div>
+                <div class="col-10">
                     {% for relatedStore in relatedStores %}
                         <span class="label label-info" data-qa="product-offer-store">{{ relatedStore.name }}</span>
                     {% endfor %}
