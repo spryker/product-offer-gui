@@ -60,7 +60,7 @@ class ProductOfferTable extends AbstractTable
      */
     protected const APPROVAL_STATUS_CLASS_LABEL_MAPPING = [
         SharedProductOfferGuiConfig::STATUS_WAITING_FOR_APPROVAL => 'label-warning',
-        SharedProductOfferGuiConfig::STATUS_APPROVED => 'label-info',
+        SharedProductOfferGuiConfig::STATUS_APPROVED => 'label-success',
         SharedProductOfferGuiConfig::STATUS_DENIED => 'label-danger',
     ];
 
@@ -419,7 +419,7 @@ class ProductOfferTable extends AbstractTable
      */
     public function getActiveLabel(bool $isActive): string
     {
-        return $isActive ? $this->generateLabel('Active', static::STORE_CLASS_LABEL) : $this->generateLabel('Inactive', 'label-danger');
+        return $isActive ? $this->generateLabel('Active', 'label-primary') : $this->generateLabel('Inactive', 'label-danger');
     }
 
     /**
