@@ -13,18 +13,8 @@ use Generated\Shared\Transfer\ProductOfferTransfer;
 
 interface ProductOfferGuiToProductOfferFacadeInterface
 {
-    /**
-     * @param \Generated\Shared\Transfer\ProductOfferTransfer $productOfferTransfer
-     *
-     * @return \Generated\Shared\Transfer\ProductOfferResponseTransfer
-     */
     public function update(ProductOfferTransfer $productOfferTransfer): ProductOfferResponseTransfer;
 
-    /**
-     * @param \Generated\Shared\Transfer\ProductOfferCriteriaTransfer $productOfferCriteria
-     *
-     * @return \Generated\Shared\Transfer\ProductOfferTransfer|null
-     */
     public function findOne(ProductOfferCriteriaTransfer $productOfferCriteria): ?ProductOfferTransfer;
 
     /**

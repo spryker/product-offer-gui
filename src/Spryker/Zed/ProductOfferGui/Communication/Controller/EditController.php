@@ -24,11 +24,6 @@ class EditController extends AbstractController
      */
     protected const MESSAGE_SUCCESS_APPROVAL_STATUS_UPDATE = 'The approval status was updated';
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse
-     */
     public function updateApprovalStatusAction(Request $request): RedirectResponse
     {
         $approvalStatus = $request->get(ProductOfferGuiConfig::REQUEST_PARAM_APPROVAL_STATUS);

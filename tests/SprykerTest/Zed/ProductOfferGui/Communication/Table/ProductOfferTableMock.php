@@ -12,9 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ProductOfferTableMock extends ProductOfferTable
 {
-    /**
-     * @return array
-     */
     public function fetchData(): array
     {
         return $this->init()->prepareData($this->config);

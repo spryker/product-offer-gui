@@ -71,9 +71,6 @@ class ProductOfferTableQueryTest extends Unit
      */
     protected $tester;
 
-    /**
-     * @return void
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -82,9 +79,6 @@ class ProductOfferTableQueryTest extends Unit
         $this->registerFormFactoryServiceMock();
     }
 
-    /**
-     * @return void
-     */
     public function testFetchDataShouldReturnProductOffers(): void
     {
         // Arrange
@@ -115,9 +109,6 @@ class ProductOfferTableQueryTest extends Unit
         $this->assertContains((string)$productOffer2->getIdProductOffer(), $resultProductOffersIds);
     }
 
-    /**
-     * @return void
-     */
     public function testApplyCriteriaShouldFilterProductOffersByStatus(): void
     {
         // Arrange
@@ -149,9 +140,6 @@ class ProductOfferTableQueryTest extends Unit
         $this->assertNotContains((string)$productOffer2->getIdProductOffer(), $resultProductOffersIds);
     }
 
-    /**
-     * @return void
-     */
     public function testApplyCriteriaShouldFilterProductOffersByApprovalStatus(): void
     {
         // Arrange
@@ -184,9 +172,6 @@ class ProductOfferTableQueryTest extends Unit
         $this->assertNotContains((string)$productOffer2->getIdProductOffer(), $resultProductOffersIds);
     }
 
-    /**
-     * @return void
-     */
     public function testApplyCriteriaShouldFilterProductOffersByStores(): void
     {
         // Arrange
@@ -221,9 +206,6 @@ class ProductOfferTableQueryTest extends Unit
         $this->assertContains((string)$productOffer2->getIdProductOffer(), $resultProductOffersIds);
     }
 
-    /**
-     * @return \SprykerTest\Zed\ProductOfferGui\Communication\Table\ProductOfferTableMock
-     */
     protected function createProductOfferTableMock(): ProductOfferTableMock
     {
         $contentQuery = SpyProductOfferQuery::create();
@@ -270,18 +252,12 @@ class ProductOfferTableQueryTest extends Unit
             ->getMock();
     }
 
-    /**
-     * @return void
-     */
     protected function registerTwigServiceMock(): void
     {
         $this->tester->getContainer()
             ->set(static::SERVICE_TWIG, $this->getTwigMock());
     }
 
-    /**
-     * @return void
-     */
     protected function registerFormFactoryServiceMock(): void
     {
         $this->tester->getContainer()
@@ -306,9 +282,6 @@ class ProductOfferTableQueryTest extends Unit
         return $twigMock;
     }
 
-    /**
-     * @return \Twig\Loader\LoaderInterface
-     */
     protected function getChainLoader(): LoaderInterface
     {
         return new ChainLoader();

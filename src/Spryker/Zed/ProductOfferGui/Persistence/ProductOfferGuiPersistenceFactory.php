@@ -17,9 +17,6 @@ use Spryker\Zed\ProductOfferGui\Persistence\Mapper\ProductOfferQueryCriteriaMapp
  */
 class ProductOfferGuiPersistenceFactory extends AbstractPersistenceFactory
 {
-    /**
-     * @return \Spryker\Zed\ProductOfferGui\Persistence\Mapper\ProductOfferQueryCriteriaMapperInterface
-     */
     public function createProductOfferQueryCriteriaMapper(): ProductOfferQueryCriteriaMapperInterface
     {
         return new ProductOfferQueryCriteriaMapper();

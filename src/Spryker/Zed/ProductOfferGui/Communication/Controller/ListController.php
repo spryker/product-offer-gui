@@ -41,11 +41,6 @@ class ListController extends AbstractController
         return $this->viewResponse($viewData);
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
-     */
     public function tableAction(Request $request): JsonResponse
     {
         $productOfferTableCriteriaTransfer = (new ProductOfferTableCriteriaTransfer())->fromArray($request->query->all(), true);

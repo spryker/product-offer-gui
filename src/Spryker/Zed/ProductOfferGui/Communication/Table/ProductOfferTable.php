@@ -139,11 +139,6 @@ class ProductOfferTable extends AbstractTable
         return $this;
     }
 
-    /**
-     * @param \Spryker\Zed\Gui\Communication\Table\TableConfiguration $config
-     *
-     * @return \Spryker\Zed\Gui\Communication\Table\TableConfiguration
-     */
     protected function configure(TableConfiguration $config): TableConfiguration
     {
         $url = Url::generate(
@@ -187,11 +182,6 @@ class ProductOfferTable extends AbstractTable
         return $config;
     }
 
-    /**
-     * @param \Spryker\Zed\Gui\Communication\Table\TableConfiguration $config
-     *
-     * @return \Spryker\Zed\Gui\Communication\Table\TableConfiguration
-     */
     protected function setHeader(TableConfiguration $config): TableConfiguration
     {
         $baseData = [
@@ -260,9 +250,6 @@ class ProductOfferTable extends AbstractTable
         return $this->productOfferQuery;
     }
 
-    /**
-     * @return void
-     */
     protected function applyFiltersCriteria(): void
     {
         $this->applyStatusFilters();
@@ -270,9 +257,6 @@ class ProductOfferTable extends AbstractTable
         $this->applyStoreFilters();
     }
 
-    /**
-     * @return void
-     */
     protected function applyStatusFilters(): void
     {
         $status = $this->productOfferTableCriteriaTransfer->getStatus();
@@ -285,9 +269,6 @@ class ProductOfferTable extends AbstractTable
         $this->productOfferQuery->filterByIsActive($booleanStatus);
     }
 
-    /**
-     * @return void
-     */
     protected function applyApprovalStatusFilters(): void
     {
         $approvalStatuses = $this->productOfferTableCriteriaTransfer->getApprovalStatuses();
@@ -547,11 +528,6 @@ class ProductOfferTable extends AbstractTable
         return $this->generateLabel($currentStatus, static::APPROVAL_STATUS_CLASS_LABEL_MAPPING[$currentStatus]);
     }
 
-    /**
-     * @param bool $isActive
-     *
-     * @return string
-     */
     public function getActiveLabel(bool $isActive): string
     {
         return $isActive ? $this->generateLabel('Active', 'label-primary') : $this->generateLabel('Inactive', 'label-danger');
@@ -578,9 +554,6 @@ class ProductOfferTable extends AbstractTable
         return implode(' ', $storeLabels);
     }
 
-    /**
-     * @return \Generated\Shared\Transfer\QueryCriteriaTransfer
-     */
     protected function buildQueryCriteriaTransfer(): QueryCriteriaTransfer
     {
         $queryCriteriaTransfer = new QueryCriteriaTransfer();
@@ -602,9 +575,6 @@ class ProductOfferTable extends AbstractTable
         return $this->total;
     }
 
-    /**
-     * @return string
-     */
     protected function prepareStoresSubQuery(): string
     {
         $selectString = '(SELECT GROUP_CONCAT(%s) FROM %s INNER JOIN %s ON %s = %s WHERE %s = %s)';

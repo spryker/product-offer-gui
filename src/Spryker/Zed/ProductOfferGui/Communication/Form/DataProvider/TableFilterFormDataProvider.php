@@ -29,10 +29,6 @@ class TableFilterFormDataProvider
      */
     public const OPTION_STORE_CHOICES = 'store_choices';
 
-    /**
-     * @param \Spryker\Zed\ProductOfferGui\Dependency\Facade\ProductOfferGuiToProductOfferFacadeInterface $productOfferFacade
-     * @param \Spryker\Zed\ProductOfferGui\Dependency\Facade\ProductOfferGuiToStoreFacadeInterface $storeFacade
-     */
     public function __construct(
         protected readonly ProductOfferGuiToProductOfferFacadeInterface $productOfferFacade,
         protected readonly ProductOfferGuiToStoreFacadeInterface $storeFacade

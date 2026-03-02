@@ -28,11 +28,6 @@ class ProductOfferGuiCommunicationTester extends Actor
 {
     use _generated\ProductOfferGuiCommunicationTesterActions;
 
-    /**
-     * @param array $seedData
-     *
-     * @return \Generated\Shared\Transfer\ProductOfferTableCriteriaTransfer
-     */
     public function createProductOfferTableCriteriaTransfer(array $seedData = []): ProductOfferTableCriteriaTransfer
     {
         return (new ProductOfferTableCriteriaTransfer())
