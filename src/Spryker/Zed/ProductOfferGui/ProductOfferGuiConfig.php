@@ -12,21 +12,29 @@ use Spryker\Zed\Kernel\AbstractBundleConfig;
 class ProductOfferGuiConfig extends AbstractBundleConfig
 {
     /**
+     * @api
+     *
      * @var string
      */
     public const REQUEST_PARAM_ID_PRODUCT_OFFER = 'id-product-offer';
 
     /**
+     * @api
+     *
      * @var string
      */
     public const REQUEST_PARAM_ID_PRODUCT_CONCRETE = 'id-product-concrete';
 
     /**
+     * @api
+     *
      * @var string
      */
     public const REQUEST_PARAM_APPROVAL_STATUS = 'approval-status';
 
     /**
+     * @api
+     *
      * @uses \Spryker\Zed\ProductOfferGui\Communication\Controller\ProductOfferController::indexAction()
      *
      * @var string
@@ -34,6 +42,8 @@ class ProductOfferGuiConfig extends AbstractBundleConfig
     public const URL_PRODUCT_OFFER_LIST = '/product-offer-gui/list-product-offer';
 
     /**
+     * @api
+     *
      * @uses \Spryker\Zed\ProductOfferGui\Communication\Controller\EditController::updateApprovalStatusAction()
      *
      * @var string
@@ -41,6 +51,8 @@ class ProductOfferGuiConfig extends AbstractBundleConfig
     public const URL_UPDATE_APPROVAL_STATUS = '/product-offer-gui/edit/update-approval-status';
 
     /**
+     * @api
+     *
      * @uses \Spryker\Zed\ProductOfferGui\Communication\Controller\ViewController::indexAction()
      *
      * @var string

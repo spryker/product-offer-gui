@@ -12,6 +12,8 @@ use Spryker\Shared\Kernel\AbstractSharedConfig;
 class ProductOfferGuiConfig extends AbstractSharedConfig
 {
     /**
+     * @api
+     *
      * @uses \Spryker\Shared\ProductOffer\ProductOfferConfig::STATUS_WAITING_FOR_APPROVAL
      *
      * @var string
@@ -19,6 +21,8 @@ class ProductOfferGuiConfig extends AbstractSharedConfig
     public const STATUS_WAITING_FOR_APPROVAL = 'waiting_for_approval';
 
     /**
+     * @api
+     *
      * @uses \Spryker\Shared\ProductOffer\ProductOfferConfig::STATUS_APPROVED
      *
      * @var string
@@ -26,6 +30,8 @@ class ProductOfferGuiConfig extends AbstractSharedConfig
     public const STATUS_APPROVED = 'approved';
 
     /**
+     * @api
+     *
      * @uses \Spryker\Shared\ProductOffer\ProductOfferConfig::STATUS_DENIED
      *
      * @var string
