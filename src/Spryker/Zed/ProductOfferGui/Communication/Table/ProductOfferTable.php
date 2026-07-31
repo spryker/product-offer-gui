@@ -325,6 +325,8 @@ class ProductOfferTable extends AbstractTable
      * Performance-optimized runQuery that applies ORDER BY before JOINs using subquery pattern.
      * This prevents MySQL from sorting the entire joined result set.
      *
+     * @param bool $returnRawResults
+     *
      * @return \Propel\Runtime\Collection\ObjectCollection|array<mixed>
      */
     protected function runQuery(ModelCriteria $query, TableConfiguration $config, $returnRawResults = false): ObjectCollection|array
