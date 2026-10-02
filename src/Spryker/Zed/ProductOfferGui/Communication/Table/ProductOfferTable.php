@@ -34,35 +34,20 @@ use Spryker\Zed\Propel\PropelConfig;
 
 class ProductOfferTable extends AbstractTable
 {
-    /**
-     * @var string
-     */
-    protected const COL_STORES = 'stores';
+    protected const string COL_STORES = 'stores';
 
-    /**
-     * @var string
-     */
-    protected const COL_ACTIONS = 'actions';
+    protected const string COL_ACTIONS = 'actions';
 
-    /**
-     * @var string
-     */
-    protected const COL_PRODUCT_NAME = 'product_name';
+    protected const string COL_PRODUCT_NAME = 'product_name';
 
-    /**
-     * @var string
-     */
-    protected const COL_ID_PRODUCT_CONCRETE = 'id_product_concrete';
+    protected const string COL_ID_PRODUCT_CONCRETE = 'id_product_concrete';
 
-    /**
-     * @var string
-     */
-    protected const STORE_CLASS_LABEL = 'label-info';
+    protected const string STORE_CLASS_LABEL = 'label-info';
 
     /**
      * @var array<string, string>
      */
-    protected const APPROVAL_STATUS_CLASS_LABEL_MAPPING = [
+    protected const array APPROVAL_STATUS_CLASS_LABEL_MAPPING = [
         SharedProductOfferGuiConfig::STATUS_WAITING_FOR_APPROVAL => 'label-warning',
         SharedProductOfferGuiConfig::STATUS_APPROVED => 'label-success',
         SharedProductOfferGuiConfig::STATUS_DENIED => 'label-danger',
@@ -71,7 +56,7 @@ class ProductOfferTable extends AbstractTable
     /**
      * @var array<string, string>
      */
-    protected const APPROVAL_STATUS_CLASS_BUTTON_MAPPING = [
+    protected const array APPROVAL_STATUS_CLASS_BUTTON_MAPPING = [
         SharedProductOfferGuiConfig::STATUS_APPROVED => 'btn-create',
         SharedProductOfferGuiConfig::STATUS_DENIED => 'btn-remove',
     ];
@@ -101,16 +86,12 @@ class ProductOfferTable extends AbstractTable
      */
     protected $productOfferTableExpanderPlugins;
 
-    /**
-     * @var \Generated\Shared\Transfer\ProductOfferTableCriteriaTransfer|null
-     */
     protected ?ProductOfferTableCriteriaTransfer $productOfferTableCriteriaTransfer = null;
+
+    protected ?ModelCriteria $productOfferIdQuery = null;
 
     /**
      * @param \Orm\Zed\ProductOffer\Persistence\SpyProductOfferQuery<mixed> $productOfferQuery
-     * @param \Spryker\Zed\ProductOfferGui\Dependency\Facade\ProductOfferGuiToLocaleFacadeInterface $localeFacade
-     * @param \Spryker\Zed\ProductOfferGui\Dependency\Facade\ProductOfferGuiToProductOfferFacadeInterface $productOfferFacade
-     * @param \Spryker\Zed\ProductOfferGui\Persistence\ProductOfferGuiRepositoryInterface $repository
      * @param array<\Spryker\Zed\ProductOfferGuiExtension\Dependency\Plugin\ProductOfferTableExpanderPluginInterface> $productOfferTableExpanderPlugins
      */
     public function __construct(
@@ -118,7 +99,7 @@ class ProductOfferTable extends AbstractTable
         ProductOfferGuiToLocaleFacadeInterface $localeFacade,
         ProductOfferGuiToProductOfferFacadeInterface $productOfferFacade,
         ProductOfferGuiRepositoryInterface $repository,
-        array $productOfferTableExpanderPlugins
+        array $productOfferTableExpanderPlugins,
     ) {
         $this->productOfferQuery = $productOfferQuery;
         $this->localeFacade = $localeFacade;
@@ -128,8 +109,6 @@ class ProductOfferTable extends AbstractTable
     }
 
     /**
-     * @param \Generated\Shared\Transfer\ProductOfferTableCriteriaTransfer $productOfferTableCriteriaTransfer
-     *
      * @return $this
      */
     public function applyCriteria(ProductOfferTableCriteriaTransfer $productOfferTableCriteriaTransfer)
@@ -209,39 +188,28 @@ class ProductOfferTable extends AbstractTable
             $this->applyFiltersCriteria();
         }
 
-        $this->total = $this->productOfferQuery->count();
-
         $this->productOfferQuery = $this->repository->mapQueryCriteriaTransferToModelCriteria(
             $this->productOfferQuery,
             $this->buildQueryCriteriaTransfer(),
         );
 
-        $currentLocaleId = $this->localeFacade->getCurrentLocale()->getIdLocale();
+        $this->total = $this->productOfferQuery->count();
 
-        /** @var literal-string $localeWhere */
-        $localeWhere = sprintf(
-            '%s = %d',
-            SpyProductLocalizedAttributesTableMap::COL_FK_LOCALE,
-            $currentLocaleId,
-        );
+        $this->productOfferIdQuery = $this->createProductOfferIdQuery($this->productOfferQuery);
 
         $this->productOfferQuery
             ->addJoin(
                 SpyProductOfferTableMap::COL_CONCRETE_SKU,
                 SpyProductTableMap::COL_SKU,
-                Criteria::INNER_JOIN,
+                Criteria::LEFT_JOIN,
             )
             ->addJoin(
-                SpyProductTableMap::COL_ID_PRODUCT,
-                SpyProductLocalizedAttributesTableMap::COL_FK_PRODUCT,
-                Criteria::INNER_JOIN,
+                [SpyProductTableMap::COL_ID_PRODUCT, (string)$this->localeFacade->getCurrentLocale()->getIdLocale()],
+                [SpyProductLocalizedAttributesTableMap::COL_FK_PRODUCT, SpyProductLocalizedAttributesTableMap::COL_FK_LOCALE],
+                Criteria::LEFT_JOIN,
             )
-            ->where($localeWhere)
             ->withColumn(SpyProductLocalizedAttributesTableMap::COL_NAME, static::COL_PRODUCT_NAME)
-            ->withColumn(
-                SpyProductLocalizedAttributesTableMap::COL_FK_PRODUCT,
-                static::COL_ID_PRODUCT_CONCRETE,
-            )
+            ->withColumn(SpyProductTableMap::COL_ID_PRODUCT, static::COL_ID_PRODUCT_CONCRETE)
             ->withColumn(
                 $this->prepareStoresSubQuery(),
                 static::COL_STORES,
@@ -286,7 +254,6 @@ class ProductOfferTable extends AbstractTable
             return;
         }
 
-        // Performance: Use EXISTS instead of JOIN + GROUP BY (much faster)
         /** @var literal-string $storeFilterSubQuery */
         $storeFilterSubQuery = sprintf(
             'EXISTS (SELECT 1 FROM %s WHERE %s = %s AND %s IN (%s))',
@@ -294,19 +261,13 @@ class ProductOfferTable extends AbstractTable
             SpyProductOfferStoreTableMap::COL_FK_PRODUCT_OFFER,
             SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER,
             SpyProductOfferStoreTableMap::COL_FK_STORE,
-            implode(',', $stores),
+            implode(',', array_map('intval', $stores)),
         );
-        if ($offerQuery) {
-            $offerQuery->where($storeFilterSubQuery);
 
-            return;
-        }
-        $this->productOfferQuery->where($storeFilterSubQuery);
+        ($offerQuery ?? $this->productOfferQuery)->where($storeFilterSubQuery);
     }
 
     /**
-     * @param \Spryker\Zed\Gui\Communication\Table\TableConfiguration $config
-     *
      * @return array<mixed>
      */
     protected function prepareData(TableConfiguration $config): array
@@ -322,9 +283,6 @@ class ProductOfferTable extends AbstractTable
     }
 
     /**
-     * Performance-optimized runQuery that applies ORDER BY before JOINs using subquery pattern.
-     * This prevents MySQL from sorting the entire joined result set.
-     *
      * @param bool $returnRawResults
      *
      * @return \Propel\Runtime\Collection\ObjectCollection|array<mixed>
@@ -335,14 +293,14 @@ class ProductOfferTable extends AbstractTable
         $orderColumn = $this->getOrderByColumn($query, $config, $order);
         $isOrderingByPrimaryKey = str_contains($orderColumn, 'id_product_offer');
 
-        if ($isOrderingByPrimaryKey && $this->canUseOptimizedQuery($query)) {
-            return $this->runOptimizedQuery($query, $config, $order, $returnRawResults);
+        if ($isOrderingByPrimaryKey && $this->canUseOptimizedQuery()) {
+            return $this->runOptimizedQuery($query, $order, $returnRawResults);
         }
 
         return parent::runQuery($query, $config, $returnRawResults);
     }
 
-    protected function canUseOptimizedQuery(ModelCriteria $query): bool
+    protected function canUseOptimizedQuery(): bool
     {
         $searchTerm = $this->getSearchTerm();
         $searchValue = $searchTerm[static::PARAMETER_VALUE] ?? '';
@@ -351,45 +309,22 @@ class ProductOfferTable extends AbstractTable
     }
 
     /**
-     * Run optimized query using subquery pattern for fast ORDER BY.
-     *
      * @param \Propel\Runtime\ActiveQuery\ModelCriteria<mixed> $query
-     * @param \Spryker\Zed\Gui\Communication\Table\TableConfiguration $config
      * @param array<mixed> $order
-     * @param bool $returnRawResults
      *
      * @return \Propel\Runtime\Collection\ObjectCollection|array<mixed>
      */
     protected function runOptimizedQuery(
         ModelCriteria $query,
-        TableConfiguration $config,
         array $order,
-        bool $returnRawResults
+        bool $returnRawResults,
     ): ObjectCollection|array {
         $this->total = $this->filtered = $this->countTotal($query);
         $orderDirection = $order[0][static::SORT_BY_DIRECTION] ?? 'ASC';
 
-        $idQuery = SpyProductOfferQuery::create()
-            ->select([SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER]);
-
-        if ($this->productOfferTableCriteriaTransfer) {
-            $status = $this->productOfferTableCriteriaTransfer->getStatus();
-            if ($status) {
-                $booleanStatus = $status === ProductOfferStatusEnum::ACTIVE->value;
-                $idQuery->filterByIsActive($booleanStatus);
-            }
-
-            $approvalStatuses = $this->productOfferTableCriteriaTransfer->getApprovalStatuses();
-            if ($approvalStatuses) {
-                $idQuery->filterByApprovalStatus_In($approvalStatuses);
-            }
-
-            $this->applyStoreFilters($idQuery);
-        }
-
         /** @var \Propel\Runtime\Collection\ObjectCollection $result */
-        $result = $idQuery
-            ->orderByIdProductOffer($orderDirection)
+        $result = ($this->productOfferIdQuery ?? $this->createProductOfferIdQuery($query))
+            ->orderBy(SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER, $orderDirection)
             ->offset($this->getOffset())
             ->limit($this->getLimit())
             ->find();
@@ -439,6 +374,13 @@ class ProductOfferTable extends AbstractTable
         return $data->toArray(null, false, TableMap::TYPE_COLNAME);
     }
 
+    protected function createProductOfferIdQuery(ModelCriteria $query): ModelCriteria
+    {
+        return (clone $query)
+            ->clearSelectColumns()
+            ->select([SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER]);
+    }
+
     /**
      * @param array<string, mixed> $item
      *
@@ -470,8 +412,6 @@ class ProductOfferTable extends AbstractTable
 
     /**
      * @param array<string, mixed> $item
-     *
-     * @return string
      */
     protected function buildLinks(array $item): string
     {
@@ -516,8 +456,6 @@ class ProductOfferTable extends AbstractTable
 
     /**
      * @param array<string, mixed> $item
-     *
-     * @return string
      */
     protected function createStatusLabel(array $item): string
     {
@@ -537,8 +475,6 @@ class ProductOfferTable extends AbstractTable
 
     /**
      * @param array<string, mixed> $item
-     *
-     * @return string
      */
     protected function createStoresLabel(array $item): string
     {
@@ -569,8 +505,6 @@ class ProductOfferTable extends AbstractTable
 
     /**
      * @param \Propel\Runtime\ActiveQuery\ModelCriteria<mixed> $query
-     *
-     * @return int
      */
     protected function countTotal(ModelCriteria $query): int
     {

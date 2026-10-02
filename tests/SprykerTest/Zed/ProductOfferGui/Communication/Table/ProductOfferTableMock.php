@@ -17,6 +17,11 @@ class ProductOfferTableMock extends ProductOfferTable
         return $this->init()->prepareData($this->config);
     }
 
+    public function getTotal(): int
+    {
+        return $this->total;
+    }
+
     /**
      * @return \Symfony\Component\HttpFoundation\Request
      */

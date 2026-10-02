@@ -13,8 +13,10 @@ use Generated\Shared\Transfer\LocaleTransfer;
 use Generated\Shared\Transfer\ProductOfferTableCriteriaTransfer;
 use Generated\Shared\Transfer\ProductOfferTransfer;
 use Generated\Shared\Transfer\StoreTransfer;
+use Orm\Zed\Product\Persistence\SpyProductLocalizedAttributesQuery;
 use Orm\Zed\ProductOffer\Persistence\Map\SpyProductOfferTableMap;
 use Orm\Zed\ProductOffer\Persistence\SpyProductOfferQuery;
+use Propel\Runtime\ActiveQuery\Criteria;
 use Spryker\Shared\ProductOfferGui\ProductOfferApprovalStatusEnum;
 use Spryker\Shared\ProductOfferGui\ProductOfferStatusEnum;
 use Spryker\Zed\ProductOfferGui\Dependency\Facade\ProductOfferGuiToLocaleFacadeBridge;
@@ -58,6 +60,26 @@ class ProductOfferTableQueryTest extends Unit
      * @var string
      */
     protected const STORE_NAME_AT = 'AT';
+
+    protected const string STORE_NAME_FILTERED = 'PRODUCT_OFFER_GUI_FILTERED';
+
+    protected const string STORE_NAME_OTHER = 'PRODUCT_OFFER_GUI_OTHER';
+
+    protected const int FILTERED_PRODUCT_OFFER_COUNT = 3;
+
+    protected const int OTHER_PRODUCT_OFFER_COUNT = 12;
+
+    protected const string STORE_FILTER_SQL_INJECTION_VALUE = '0) OR (1=1';
+
+    /**
+     * @uses \Spryker\Zed\Gui\Communication\Table\AbstractTable::$defaultLimit
+     */
+    protected const int DEFAULT_PAGE_LIMIT = 10;
+
+    /**
+     * @uses \Spryker\Zed\ProductOfferGui\Communication\Table\ProductOfferTable::COL_PRODUCT_NAME
+     */
+    protected const string COL_PRODUCT_NAME = 'product_name';
 
     /**
      * @uses \Spryker\Zed\Form\Communication\Plugin\Application\FormApplicationPlugin::SERVICE_FORM_FACTORY
@@ -206,7 +228,179 @@ class ProductOfferTableQueryTest extends Unit
         $this->assertContains((string)$productOffer2->getIdProductOffer(), $resultProductOffersIds);
     }
 
-    protected function createProductOfferTableMock(): ProductOfferTableMock
+    public function testGivenExpanderPluginJoinAndNewerNonMatchingProductOffersWhenFetchingDataThenOnlyMatchingProductOffersAreReturned(): void
+    {
+        // Arrange
+        $filteredStoreTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::STORE_NAME_FILTERED]);
+        $otherStoreTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::STORE_NAME_OTHER]);
+        $productConcreteTransfer = $this->tester->haveFullProduct();
+
+        $filteredProductOfferIds = $this->haveProductOffersInStore(
+            $productConcreteTransfer->getSkuOrFail(),
+            $filteredStoreTransfer,
+            static::FILTERED_PRODUCT_OFFER_COUNT,
+        );
+        $this->haveProductOffersInStore(
+            $productConcreteTransfer->getSkuOrFail(),
+            $otherStoreTransfer,
+            static::OTHER_PRODUCT_OFFER_COUNT,
+        );
+
+        $productOfferTableMock = $this->createProductOfferTableMock([
+            new ProductOfferTableStoreJoinExpanderPluginStub($filteredStoreTransfer->getIdStoreOrFail()),
+        ]);
+
+        // Act
+        $resultData = $productOfferTableMock->fetchData();
+
+        // Assert
+        $resultProductOfferIds = array_map('intval', array_column($resultData, SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER));
+        $this->assertCount(min(static::FILTERED_PRODUCT_OFFER_COUNT, static::DEFAULT_PAGE_LIMIT), $resultData);
+        $this->assertSame(array_reverse($filteredProductOfferIds), $resultProductOfferIds);
+        $this->assertSame(
+            array_fill(0, count($resultData), $filteredStoreTransfer->getIdStoreOrFail()),
+            array_map('intval', array_column($resultData, ProductOfferTableStoreJoinExpanderPluginStub::COL_JOINED_ID_STORE)),
+        );
+    }
+
+    public function testGivenExpanderPluginJoinWhenFetchingDataThenTotalCountsOnlyMatchingProductOffers(): void
+    {
+        // Arrange
+        $filteredStoreTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::STORE_NAME_FILTERED]);
+        $otherStoreTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::STORE_NAME_OTHER]);
+        $productConcreteTransfer = $this->tester->haveFullProduct();
+
+        $filteredProductOfferIds = $this->haveProductOffersInStore(
+            $productConcreteTransfer->getSkuOrFail(),
+            $filteredStoreTransfer,
+            static::FILTERED_PRODUCT_OFFER_COUNT,
+        );
+        $this->haveProductOffersInStore(
+            $productConcreteTransfer->getSkuOrFail(),
+            $otherStoreTransfer,
+            static::OTHER_PRODUCT_OFFER_COUNT,
+        );
+
+        $productOfferTableMock = $this->createProductOfferTableMock([
+            new ProductOfferTableStoreJoinExpanderPluginStub($filteredStoreTransfer->getIdStoreOrFail()),
+        ]);
+
+        // Act
+        $productOfferTableMock->fetchData();
+
+        // Assert
+        $this->assertSame(count($filteredProductOfferIds), $productOfferTableMock->getTotal());
+    }
+
+    public function testGivenNonNumericStoreFilterValueWhenFetchingDataThenItIsNotAppliedAsSql(): void
+    {
+        // Arrange
+        $productConcreteTransfer = $this->tester->haveFullProduct();
+        $this->tester->haveProductOffer([
+            ProductOfferTransfer::CONCRETE_SKU => $productConcreteTransfer->getSkuOrFail(),
+        ]);
+
+        $productOfferTableMock = $this->createProductOfferTableMock();
+        $productOfferTableCriteriaTransfer = $this->tester->createProductOfferTableCriteriaTransfer([
+            ProductOfferTableCriteriaTransfer::STORES => [static::STORE_FILTER_SQL_INJECTION_VALUE],
+        ]);
+
+        // Act
+        $productOfferTableMock->applyCriteria($productOfferTableCriteriaTransfer);
+        $resultData = $productOfferTableMock->fetchData();
+
+        // Assert
+        $this->assertSame([], $resultData);
+        $this->assertSame(0, $productOfferTableMock->getTotal());
+    }
+
+    public function testGivenNoExpanderPluginWhenFetchingDataThenLatestProductOffersPageIsReturned(): void
+    {
+        // Arrange
+        $productConcreteTransfer = $this->tester->haveFullProduct();
+        $otherStoreTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::STORE_NAME_OTHER]);
+        $this->haveProductOffersInStore(
+            $productConcreteTransfer->getSkuOrFail(),
+            $otherStoreTransfer,
+            static::OTHER_PRODUCT_OFFER_COUNT,
+        );
+
+        $productOfferTableMock = $this->createProductOfferTableMock();
+
+        // Act
+        $resultData = $productOfferTableMock->fetchData();
+
+        // Assert
+        $resultProductOfferIds = array_map('intval', array_column($resultData, SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER));
+        $this->assertSame($this->getLatestProductOfferIds(static::DEFAULT_PAGE_LIMIT), $resultProductOfferIds);
+    }
+
+    public function testGivenConcreteProductWithoutLocalizedAttributesInCurrentLocaleWhenFetchingDataThenOfferIsListedWithoutName(): void
+    {
+        // Arrange
+        $productConcreteTransfer = $this->tester->haveFullProduct();
+        $this->deleteProductLocalizedAttributesInCurrentLocale($productConcreteTransfer->getIdProductConcreteOrFail());
+        $productOfferTransfer = $this->tester->haveProductOffer([
+            ProductOfferTransfer::CONCRETE_SKU => $productConcreteTransfer->getSkuOrFail(),
+        ]);
+
+        $productOfferTableMock = $this->createProductOfferTableMock();
+
+        // Act
+        $resultData = $productOfferTableMock->fetchData();
+
+        // Assert
+        $productOfferRows = array_values(array_filter(
+            $resultData,
+            fn (array $row): bool => (int)$row[SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER] === $productOfferTransfer->getIdProductOfferOrFail(),
+        ));
+        $this->assertCount(1, $productOfferRows);
+        $this->assertNull($productOfferRows[0][static::COL_PRODUCT_NAME]);
+    }
+
+    /**
+     * @return list<int>
+     */
+    protected function haveProductOffersInStore(string $concreteSku, StoreTransfer $storeTransfer, int $productOfferCount): array
+    {
+        $productOfferIds = [];
+        for ($productOfferIndex = 0; $productOfferIndex < $productOfferCount; $productOfferIndex++) {
+            $productOfferIds[] = $this->tester->haveProductOffer([
+                ProductOfferTransfer::CONCRETE_SKU => $concreteSku,
+                ProductOfferTransfer::STORES => new ArrayObject([$storeTransfer]),
+            ])->getIdProductOfferOrFail();
+        }
+
+        return $productOfferIds;
+    }
+
+    /**
+     * @return list<int>
+     */
+    protected function getLatestProductOfferIds(int $limit): array
+    {
+        $productOfferIds = SpyProductOfferQuery::create()
+            ->select([SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER])
+            ->orderByIdProductOffer(Criteria::DESC)
+            ->limit($limit)
+            ->find()
+            ->getData();
+
+        return array_values(array_map('intval', $productOfferIds));
+    }
+
+    protected function deleteProductLocalizedAttributesInCurrentLocale(int $idProductConcrete): void
+    {
+        SpyProductLocalizedAttributesQuery::create()
+            ->filterByFkProduct($idProductConcrete)
+            ->filterByFkLocale($this->tester->getLocator()->locale()->facade()->getCurrentLocale()->getIdLocaleOrFail())
+            ->delete();
+    }
+
+    /**
+     * @param array<\Spryker\Zed\ProductOfferGuiExtension\Dependency\Plugin\ProductOfferTableExpanderPluginInterface> $productOfferTableExpanderPlugins
+     */
+    protected function createProductOfferTableMock(array $productOfferTableExpanderPlugins = []): ProductOfferTableMock
     {
         $contentQuery = SpyProductOfferQuery::create();
         $productOfferGuiRepository = new ProductOfferGuiRepository();
@@ -216,7 +410,7 @@ class ProductOfferTableQueryTest extends Unit
             $this->getProductOfferGuiToLocaleFacadeMock(),
             $this->getProductOfferGuiToProductOfferFacadeMock(),
             $productOfferGuiRepository,
-            [],
+            $productOfferTableExpanderPlugins,
         );
     }
 
