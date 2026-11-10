@@ -462,7 +462,7 @@ class ProductOfferTable extends AbstractTable
         $currentStatus = $item[SpyProductOfferTableMap::COL_APPROVAL_STATUS];
 
         if (!isset(static::APPROVAL_STATUS_CLASS_LABEL_MAPPING[$currentStatus])) {
-            return $currentStatus;
+            return htmlspecialchars((string)$currentStatus, ENT_QUOTES, 'UTF-8');
         }
 
         return $this->generateLabel($currentStatus, static::APPROVAL_STATUS_CLASS_LABEL_MAPPING[$currentStatus]);
